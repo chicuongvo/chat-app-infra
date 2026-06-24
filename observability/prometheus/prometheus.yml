@@ -1,0 +1,40 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'api-gateway'
+    static_configs:
+      - targets: ['gateway:9464']
+
+  - job_name: 'auth-service'
+    static_configs:
+      - targets: ['auth-service:9464']
+
+  - job_name: 'user-service'
+    static_configs:
+      - targets: ['user-service:9464']
+
+  - job_name: 'chat-service'
+    static_configs:
+      - targets: ['chat-service:9464']
+
+  - job_name: 'multimedia-service'
+    static_configs:
+      - targets: ['multimedia-service:9464']
+
+  - job_name: 'notification-service'
+    static_configs:
+      - targets: ['notification-service:9464']
+
+  - job_name: 'realtime-service'
+    static_configs:
+      - targets: ['realtime-service:9464']
+
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

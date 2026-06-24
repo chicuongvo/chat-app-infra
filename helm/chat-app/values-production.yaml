@@ -1,0 +1,34 @@
+global:
+  imageRegistry: ghcr.io/YOUR_ORG
+  imagePullPolicy: Always
+
+gateway:
+  replicaCount: 3
+  service:
+    type: LoadBalancer
+
+auth-service:
+  replicaCount: 3
+
+user-service:
+  replicaCount: 3
+
+chat-service:
+  replicaCount: 3
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 12
+
+multimedia-service:
+  replicaCount: 2
+
+notification-service:
+  replicaCount: 2
+
+realtime-service:
+  replicaCount: 3
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 20

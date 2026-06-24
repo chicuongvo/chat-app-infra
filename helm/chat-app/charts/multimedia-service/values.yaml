@@ -1,0 +1,15 @@
+replicaCount: 2
+image:
+  repository: chatapp-multimedia-service
+  tag: latest
+service:
+  type: ClusterIP
+  port: 4004
+  targetPort: 4004
+resources:
+  requests:
+    cpu: 200m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi

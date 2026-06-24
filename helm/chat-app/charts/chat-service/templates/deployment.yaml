@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "chat-service.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: chat-service
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: chat-service
+      release: {{ .Release.Name }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: chat-service
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: chat-service
+          image: "{{ .Values.global.imageRegistry }}/{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.global.imagePullPolicy | default "IfNotPresent" }}
+          ports:
+            - containerPort: 4002
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: PORT
+              value: "4002"
+            - name: MONGODB_URI
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: MONGODB_URI
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: RABBITMQ_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: REDIS_URL
+            - name: USER_SERVICE_GRPC_URL
+              value: user-service:50051
+            - name: ENABLE_EVENT_PUBLISH
+              value: "true"
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4002
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4002
+            initialDelaySeconds: 25
+            periodSeconds: 30
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}

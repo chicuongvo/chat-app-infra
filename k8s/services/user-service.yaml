@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: user-service
+  namespace: chatapp
+  labels:
+    app: user-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: user-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: user-service
+    spec:
+      containers:
+        - name: user-service
+          image: ghcr.io/YOUR_ORG/chatapp-user-service:latest
+          ports:
+            - containerPort: 4001
+              name: http
+            - containerPort: 50051
+              name: grpc
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: USER_SERVICE_PORT
+              value: "4001"
+            - name: USER_SERVICE_GRPC_PORT
+              value: "50051"
+            - name: USER_DB_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: USER_DB_URL
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: RABBITMQ_URL
+            - name: INTERNAL_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: INTERNAL_API_TOKEN
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4001
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4001
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: user-service
+  namespace: chatapp
+spec:
+  selector:
+    app: user-service
+  ports:
+    - name: http
+      port: 4001
+      targetPort: 4001
+    - name: grpc
+      port: 50051
+      targetPort: 50051

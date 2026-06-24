@@ -1,0 +1,118 @@
+# Default values — override with values-staging.yaml or values-production.yaml
+
+global:
+  imageRegistry: ghcr.io/YOUR_ORG
+  imagePullPolicy: IfNotPresent
+  namespace: chatapp
+  secrets:
+    jwtSecret: "change-me-super-secret-jwt-key-at-least-32-chars"
+    jwtRefreshSecret: "change-me-super-secret-refresh-key-32chars"
+    internalApiToken: "change-me-internal-api-token-32chars!!"
+
+  infra:
+    rabbitmqUrl: "amqp://guest:guest@rabbitmq:5672"
+    redisUrl: "redis://redis:6379"
+    mongoUrl: "mongodb://root:password@mongodb:27017/chatapp?authSource=admin"
+    authDbUrl: "postgresql://chatapp_auth:chatapp_password@postgresql-auth:5432/chatapp_auth"
+    userDbUrl: "postgresql://chatapp_user:chatapp_password@postgresql-user:5432/chatapp_user"
+
+gateway:
+  replicaCount: 2
+  image:
+    tag: latest
+  service:
+    type: LoadBalancer
+    port: 80
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+auth-service:
+  replicaCount: 2
+  image:
+    tag: latest
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+user-service:
+  replicaCount: 2
+  image:
+    tag: latest
+  grpc:
+    port: 50051
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+chat-service:
+  replicaCount: 2
+  image:
+    tag: latest
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 70
+  resources:
+    requests:
+      cpu: 150m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+multimedia-service:
+  replicaCount: 2
+  image:
+    tag: latest
+  storage:
+    size: 20Gi
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 256Mi
+
+notification-service:
+  replicaCount: 2
+  image:
+    tag: latest
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+realtime-service:
+  replicaCount: 2
+  image:
+    tag: latest
+  autoscaling:
+    enabled: true
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 60
+  resources:
+    requests:
+      cpu: 150m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: chat-service
+description: Chat (Conversation) Service subchart
+type: application
+version: 1.0.0

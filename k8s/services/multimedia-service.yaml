@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: multimedia-service
+  namespace: chatapp
+  labels:
+    app: multimedia-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: multimedia-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: multimedia-service
+    spec:
+      containers:
+        - name: multimedia-service
+          image: ghcr.io/YOUR_ORG/chatapp-multimedia-service:latest
+          ports:
+            - containerPort: 4004
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: MULTIMEDIA_SERVICE_PORT
+              value: "4004"
+            - name: INTERNAL_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: INTERNAL_API_TOKEN
+            - name: MINIO_ENDPOINT
+              value: minio
+            - name: MINIO_PORT
+              value: "9000"
+            - name: MINIO_USE_SSL
+              value: "false"
+            - name: MINIO_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: MINIO_ACCESS_KEY
+            - name: MINIO_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: MINIO_SECRET_KEY
+            - name: MINIO_BUCKET
+              value: chatapp-media
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4004
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4004
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: multimedia-service
+  namespace: chatapp
+spec:
+  selector:
+    app: multimedia-service
+  ports:
+    - port: 4004
+      targetPort: 4004

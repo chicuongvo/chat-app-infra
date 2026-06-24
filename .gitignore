@@ -1,0 +1,11 @@
+# Service repos have their own git history
+chat-app-auth-service/
+chat-app-user-service/
+chat-app-multimedia-service/
+chat-app-gateway/
+chatapp-conversation/
+chatapp-notification/
+realtime-service/
+
+# Scratch
+.claude/

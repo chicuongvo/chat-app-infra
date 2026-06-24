@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  namespace: chatapp
+  labels:
+    app: gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gateway
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: ghcr.io/YOUR_ORG/chatapp-gateway:latest
+          ports:
+            - containerPort: 4000
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: GATEWAY_PORT
+              value: "4000"
+            - name: AUTH_SERVICE_URL
+              value: http://auth-service:4003
+            - name: USER_SERVICE_URL
+              value: http://user-service:4001
+            - name: CHAT_SERVICE_URL
+              value: http://chat-service:4002
+            - name: MULTIMEDIA_SERVICE_URL
+              value: http://multimedia-service:4004
+            - name: NOTIFICATION_SERVICE_URL
+              value: http://notification-service:4010
+            - name: REALTIME_SERVICE_URL
+              value: http://realtime-service:3001
+            - name: JWT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: JWT_SECRET
+            - name: INTERNAL_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: INTERNAL_API_TOKEN
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4000
+            initialDelaySeconds: 20
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gateway
+  namespace: chatapp
+spec:
+  selector:
+    app: gateway
+  type: LoadBalancer
+  ports:
+    - port: 80
+      targetPort: 4000

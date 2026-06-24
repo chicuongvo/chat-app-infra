@@ -1,0 +1,15 @@
+replicaCount: 2
+image:
+  repository: chatapp-auth-service
+  tag: latest
+service:
+  type: ClusterIP
+  port: 4003
+  targetPort: 4003
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 300m
+    memory: 256Mi

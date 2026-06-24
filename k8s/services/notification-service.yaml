@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-service
+  namespace: chatapp
+  labels:
+    app: notification-service
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notification-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: notification-service
+    spec:
+      containers:
+        - name: notification-service
+          image: ghcr.io/YOUR_ORG/chatapp-notification-service:latest
+          ports:
+            - containerPort: 4010
+          env:
+            - name: NODE_ENV
+              value: production
+            - name: NOTIFICATION_SERVICE_PORT
+              value: "4010"
+            - name: RABBITMQ_URL
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: RABBITMQ_URL
+            - name: INTERNAL_API_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: chatapp-secrets
+                  key: INTERNAL_API_TOKEN
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 4010
+            initialDelaySeconds: 15
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 4010
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: notification-service
+  namespace: chatapp
+spec:
+  selector:
+    app: notification-service
+  ports:
+    - port: 4010
+      targetPort: 4010

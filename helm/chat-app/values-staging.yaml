@@ -1,0 +1,28 @@
+global:
+  imageRegistry: ghcr.io/YOUR_ORG
+  imagePullPolicy: Always
+
+gateway:
+  replicaCount: 1
+
+auth-service:
+  replicaCount: 1
+
+user-service:
+  replicaCount: 1
+
+chat-service:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
+
+multimedia-service:
+  replicaCount: 1
+
+notification-service:
+  replicaCount: 1
+
+realtime-service:
+  replicaCount: 1
+  autoscaling:
+    enabled: false
